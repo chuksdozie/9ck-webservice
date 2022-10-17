@@ -1,0 +1,38 @@
+{
+    "name": "loubby-webservice",
+    "version": "1.0.0",
+    "description": "Web service for Loubby app",
+    "main": "index.js",
+    "author": "Loubby team",
+    "license": "MIT",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "dependencies": {
+        "@sendgrid/mail": "^7.7.0",
+        "axios": "^0.27.2",
+        "bcrypt": "^5.0.1",
+        "cors": "^2.8.5",
+        "csurf": "^1.11.0",
+        "dotenv": "^16.0.2",
+        "express": "^4.18.1",
+        "express-mongo-sanitize": "^2.2.0",
+        "helmet": "^6.0.0",
+        "ioredis": "^5.2.3",
+        "jsonwebtoken": "^8.5.1",
+        "mongoose": "^6.6.0",
+        "slugify": "^1.6.5",
+        "twilio": "^3.82.0",
+        "uuid": "^9.0.0",
+        "xss-clean": "^0.1.1"
+    },
+    "engines": {
+        "node": "16.x"
+    },
+    "devDependencies": {
+        "eslint": "^8.23.0",
+        "eslint-config-prettier": "^8.5.0",
+        "prettier": "^2.7.1"
+    }
+}
