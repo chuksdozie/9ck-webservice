@@ -5,7 +5,7 @@
 
 const mongoose = require('mongoose')
 
-const userSchema = new mongoose.Schema(
+const userwwSchema = new mongoose.Schema(
     {
         // account_id: {
         //     type: mongoose.Schema.Types.ObjectId,
@@ -27,6 +27,6 @@ const userSchema = new mongoose.Schema(
 //     this.populate('account_id')
 //     next()
 // })
-const User = mongoose.model('User', userSchema)
+const Userww = mongoose.model('Userwww', userwwSchema)
 
-module.exports = User
+module.exports = Userww
