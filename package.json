@@ -1,9 +1,9 @@
 {
-    "name": "loubby-webservice",
+    "name": "9ck-webservice",
     "version": "1.0.0",
-    "description": "Web service for Loubby app",
+    "description": "Web service for 9ck app",
     "main": "index.js",
-    "author": "Loubby team",
+    "author": "Dev Chuks",
     "license": "MIT",
     "scripts": {
         "start": "node index.js",

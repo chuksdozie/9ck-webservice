@@ -30,7 +30,7 @@ const AuthController = {
         redis.set(emailKey, email, 'EX', 24 * 60 * 60) //delete after 24 hrs - 24*60*60
 
         const reciever = email
-        const mailSubject = 'Welcome to Loubby'
+        const mailSubject = 'Welcome to 9ck'
         const mailContent = `<p>Thanks for registering, please <a href="${mainurl}", target="_blank"><button>Verify Email</button></a></p>`
 
         return { reciever, mailSubject, mailContent }

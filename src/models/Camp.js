@@ -1,8 +1,3 @@
-/** (c)2021 Buzzline
- * * Crafted @ Cogart Studio
- * * https://cogartstudio.com
- */
-
 const mongoose = require('mongoose')
 
 const campSchema = new mongoose.Schema(
