@@ -1,8 +1,3 @@
-/** (c)2021 Buzzline
- * * Crafted @ Cogart Studio
- * * https://cogartstudio.com
- */
-
 const mongoose = require('mongoose')
 
 const locationSchema = new mongoose.Schema(
@@ -18,6 +13,10 @@ const locationSchema = new mongoose.Schema(
         address: {
             type: String,
             required: [true, 'Location address must be defined'],
+        },
+        state: {
+            type: String,
+            required: [true, 'Location state must be defined'],
         },
         created_at: {
             type: Date,
