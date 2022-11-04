@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { promisify } = require('util')
-const { Account } = require('../models')
+const { User } = require('../models')
 const AppError = require('../helpers/appError')
 const catchAsync = require('../helpers/catchAsync')
 
@@ -27,7 +26,7 @@ const auth = async (req, res, next) => {
         const decoded = await jwt.verify(token, process.env.JWT_SECRET)
         console.log(111111, decoded)
 
-        const currentUser = await Account.findById(decoded.id)
+        const currentUser = await User.findById(decoded.id)
         if (!currentUser) {
             return next(
                 new AppError(
@@ -36,15 +35,6 @@ const auth = async (req, res, next) => {
                 )
             )
         }
-        // 4) Check if user changed password after the token was issued
-        // if (currentUser.changedPasswordAfter(decoded.iat)) {
-        //     return next(
-        //         new AppError(
-        //             'User recently changed password! Please log in again.',
-        //             401
-        //         )
-        //     )
-        // }
 
         // GRANT ACCESS TO PROTECTED ROUTE
         req.user = currentUser
