@@ -7,7 +7,7 @@ const { sendMail } = require('../services/sendgrid')
 const { User } = require('../models')
 const AppError = require('../helpers/appError')
 const { isPasswordStandard } = require('../utils/utility')
-const AuthController = {
+const SessionController = {
     /**
      * @function emailVerificationSetup
      * @param {*} email
@@ -420,4 +420,4 @@ const AuthController = {
     }),
 }
 
-module.exports = AuthController
+module.exports = SessionController
