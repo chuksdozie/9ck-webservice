@@ -7,7 +7,7 @@ router.use(auth)
 // router.route('/signup').post(authController.signUp)
 // router.route('/verify/:token').get(authController.verifyEmail)
 router.route('/add').post(userController.addNewUser)
-// router.route('/forgot-password').post(authController.forgotPassword)
+router.route('/all').get(userController.getUsers)
 // router
 //     .route('/verify-password-link/:token')
 //     .get(authController.verifyPasswordLink)
