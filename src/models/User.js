@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
         verified: {
             type: Boolean,
             required: [true, 'Verified status must be defined'],
-            default: false,
+            default: true,
         },
         created_at: {
             type: Date,
