@@ -13,23 +13,12 @@ const UserController = {
      * @param {*} email
      * @returns verification link to be sent to employer email
      */
-    emailVerificationSetup: async (email) => {
-        let baseUrl = ''
-        if (process.env.NODE_ENV === 'development') {
-            baseUrl = process.env.LOCAL_BASE_URL
-        } else {
-            baseUrl = process.env.REMOTE_BASE_URL
-        }
-
-        // THIS IS TO GENERATE VERIFICATION LINK
-        const token = uuid.v4()
-        const emailKey = `${process.env.REDIS_PREFIX}-${token}`
-        const mainurl = `${baseUrl}/api/v1/employer/verify/${token}`
-        redis.set(emailKey, email, 'EX', 24 * 60 * 60) //delete after 24 hrs - 24*60*60
+    onboardingEmailSetup: async (email, password) => {
+        // THIS IS TO GENERATE PASSWORD
 
         const reciever = email
         const mailSubject = 'Welcome to 9ck'
-        const mailContent = `<p>Thanks for registering, please <a href="${mainurl}", target="_blank"><button>Verify Email</button></a></p>`
+        const mailContent = `<p>You have been added to 9ck.<p>Email: ${email}</p><p>Password: ${password}</p></p>`
 
         return { reciever, mailSubject, mailContent }
     },
@@ -61,49 +50,51 @@ const UserController = {
     },
 
     /**
-     * @function signUp
-     * @route /api/v1/employers/signup
+     * @function addNewUser
+     * @route /api/v1/user/add
      * @method POST
      */
-    signUp: catchAsync(async (req, res, next) => {
+    addNewUser: catchAsync(async (req, res, next) => {
         try {
-            const { company_name, email, password } = req.body
-            const emailExists = await Account.findOne({
-                email_address: email,
+            const { user } = req
+            const { first_name, last_name, email, type } = req.body
+
+            if (user.type !== 'super-admin') {
+                return next(
+                    new AppError(
+                        'You are not authorized to carry out this action',
+                        401
+                    )
+                )
+            }
+
+            const emailExists = await User.findOne({
+                email,
             })
 
             if (emailExists) {
                 return next(
                     new AppError(
-                        'Email address already exists. Login instead!',
-                        400
-                    )
-                )
-            }
-            let verifiedPassword = isPasswordStandard(password)
-            if (!verifiedPassword) {
-                return next(
-                    new AppError(
-                        'Invalid password format. Atleast 8 characters long',
+                        'Email address already exists. User should Login instead!',
                         400
                     )
                 )
             }
 
-            const hashedPassword = await bcrypt.hash(password, 10)
-            const newCompany = {
-                email_address: email,
+            const generatedPassword = '12345678'
+            const hashedPassword = await bcrypt.hash(generatedPassword, 10)
+
+            const myUser = await User.create({
+                first_name,
+                last_name,
+                email,
+                type,
                 password: hashedPassword,
-                type: 'employer',
-            }
-            const result = await Account.create(newCompany)
-            const employer = await Account.findOne({ email_address: email })
-            const myEmployer = CompanyProfile.create({
-                account_id: employer.id,
-                company_name: company_name,
             })
-            const emailDetails = await AuthController.emailVerificationSetup(
-                email
+
+            const emailDetails = await UserController.onboardingEmailSetup(
+                email,
+                generatedPassword
             )
             const sentEmail = await sendMail(
                 emailDetails.reciever,
@@ -112,11 +103,11 @@ const UserController = {
             )
             res.status(201).json({
                 status: 'Success',
-                message: `Account created successfully. A verification email has been sent to ${email}`,
-                data: `A verification email has been sent to ${email}`,
+                message: `User created successfully. A credentials email has been sent to ${email}`,
+                data: `A credentials email has been sent to ${email}`,
             })
         } catch (error) {
-            return next(new AppError('Something went wrong', 400))
+            return next(new AppError(error, 400))
         }
     }),
 
