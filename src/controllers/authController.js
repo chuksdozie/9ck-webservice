@@ -263,7 +263,7 @@ const AuthController = {
                 return next(new AppError('Incorrect password, try again.', 400))
             }
             // CHECK IF USER IS VERIFIED
-            if (!user.is_verified) {
+            if (!user.verified) {
                 return next(
                     new AppError(
                         'Please verify your email address then proceed to login',
@@ -276,7 +276,7 @@ const AuthController = {
             const token = jwt.sign(
                 {
                     id: user._id,
-                    email: email_address,
+                    email: email,
                     type: user.type,
                 },
                 process.env.JWT_SECRET,
@@ -293,7 +293,7 @@ const AuthController = {
                 token: token,
             })
         } catch (error) {
-            return next(new AppError('Something went wrong', 400))
+            return next(new AppError(error, 400))
         }
     }),
 
