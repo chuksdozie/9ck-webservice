@@ -5,6 +5,7 @@ const locationController = require('./locationController')
 const parentController = require('./parentController')
 const sessionController = require('./sessionController')
 const studentController = require('./studentController')
+const userController = require('./userController')
 
 const models = require('../models')
 
@@ -16,4 +17,5 @@ module.exports = {
     parentController,
     sessionController,
     studentController,
+    userController,
 }

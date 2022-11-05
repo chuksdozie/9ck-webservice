@@ -6,6 +6,7 @@ const locationRouter = require('./locationRouter')
 const parentRouter = require('./parentRouter')
 const sessionRouter = require('./sessionRouter')
 const studentRouter = require('./studentRouter')
+const userRouter = require('./userRouter')
 
 const router = Router()
 
@@ -16,5 +17,6 @@ router.use('/location', locationRouter)
 router.use('/parent', parentRouter)
 router.use('/session', sessionRouter)
 router.use('/student', studentRouter)
+router.use('/user', userRouter)
 
 module.exports = router
