@@ -6,20 +6,19 @@ const parentSchema = new mongoose.Schema(
             type: String,
             required: [true, 'First name must be defined'],
         },
-        g2_last_name: {
+        g1_last_name: {
             type: String,
             required: [true, 'Last name must be defined'],
         },
         g1_email: {
             type: String,
+            required: [true, 'g1 email must be defined'],
         },
         g2_first_name: {
             type: String,
-            required: [true, 'First name must be defined'],
         },
         g2_last_name: {
             type: String,
-            required: [true, 'Last name must be defined'],
         },
         g2_email: {
             type: String,
@@ -37,7 +36,6 @@ const parentSchema = new mongoose.Schema(
         },
         g2_phone_number: {
             type: String,
-            required: [true, 'Phone number must be defined'],
         },
         created_at: {
             type: Date,
