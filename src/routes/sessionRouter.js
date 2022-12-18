@@ -1,16 +1,15 @@
 const { Router } = require('express')
 const auth = require('../middlewares/auth')
-const { authController } = require('../controllers')
+const { sessionController } = require('../controllers')
 const router = Router()
 
 // router.use(auth)
-// router.route('/signup').post(authController.signUp)
-// router.route('/verify/:token').get(authController.verifyEmail)
-router.route('/login').post(authController.login)
-// router.route('/forgot-password').post(authController.forgotPassword)
-// router
-//     .route('/verify-password-link/:token')
-//     .get(authController.verifyPasswordLink)
-// router.route('/reset-password/:token').post(authController.resetPassword)
+
+router
+    .route('/session/:student_id/create')
+    .post(sessionController.createSession)
+router
+    .route('/get-student-sessions/:student_id')
+    .get(sessionController.getStudentSessions)
 
 module.exports = router
