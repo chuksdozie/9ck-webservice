@@ -1,16 +1,15 @@
 const { Router } = require('express')
 const auth = require('../middlewares/auth')
-const { authController } = require('../controllers')
+const { studentController } = require('../controllers')
 const router = Router()
 
 // router.use(auth)
-// router.route('/signup').post(authController.signUp)
-// router.route('/verify/:token').get(authController.verifyEmail)
-router.route('/login').post(authController.login)
-// router.route('/forgot-password').post(authController.forgotPassword)
-// router
-//     .route('/verify-password-link/:token')
-//     .get(authController.verifyPasswordLink)
-// router.route('/reset-password/:token').post(authController.resetPassword)
+
+router.route('/all').get(studentController.getAllStudents)
+router
+    .route('/get-my-kids/:parent_id')
+    .get(studentController.getStudentsUnderParent)
+router.route('/:parent_id/create').post(studentController.createStudent)
+router.route('/:id/edit').post(studentController.editStudent)
 
 module.exports = router

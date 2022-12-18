@@ -4,116 +4,47 @@ const uuid = require('uuid')
 const jwt = require('jsonwebtoken')
 const redis = require('../services/redis')
 const { sendMail } = require('../services/sendgrid')
-const { User } = require('../models')
+const { Student, Parent } = require('../models')
 const AppError = require('../helpers/appError')
 const { isPasswordStandard } = require('../utils/utility')
 const StudentController = {
     /**
-     * @function emailVerificationSetup
-     * @param {*} email
-     * @returns verification link to be sent to employer email
-     */
-    emailVerificationSetup: async (email) => {
-        let baseUrl = ''
-        if (process.env.NODE_ENV === 'development') {
-            baseUrl = process.env.LOCAL_BASE_URL
-        } else {
-            baseUrl = process.env.REMOTE_BASE_URL
-        }
-
-        // THIS IS TO GENERATE VERIFICATION LINK
-        const token = uuid.v4()
-        const emailKey = `${process.env.REDIS_PREFIX}-${token}`
-        const mainurl = `${baseUrl}/api/v1/employer/verify/${token}`
-        redis.set(emailKey, email, 'EX', 24 * 60 * 60) //delete after 24 hrs - 24*60*60
-
-        const reciever = email
-        const mailSubject = 'Welcome to 9ck'
-        const mailContent = `<p>Thanks for registering, please <a href="${mainurl}", target="_blank"><button>Verify Email</button></a></p>`
-
-        return { reciever, mailSubject, mailContent }
-    },
-
-    /**
-     * @function passwordResetEmailSetup
-     * @param {*} email
-     * @returns verification link to be sent to employer email
-     */
-    passwordResetEmailSetup: async (email) => {
-        let baseUrl = ''
-        if (process.env.NODE_ENV === 'development') {
-            baseUrl = process.env.LOCAL_BASE_URL
-        } else {
-            baseUrl = process.env.REMOTE_BASE_URL
-        }
-
-        // THIS IS TO GENERATE VERIFICATION LINK
-        const token = uuid.v4()
-        const emailKey = `${process.env.REDIS_PREFIX}-${token}`
-        const mainurl = `${baseUrl}/api/v1/employer/verify-password-link/${token}`
-        redis.set(emailKey, email, 'EX', 1 * 60 * 60) //delete after 1 hr - 1*60*60
-
-        const reciever = email
-        const mailSubject = 'Password Reset'
-        const mailContent = `<p>You have made a request to reset your password <a href="${mainurl}", target="_blank"><button>Reset Password</button></a></p>`
-
-        return { reciever, mailSubject, mailContent }
-    },
-
-    /**
-     * @function signUp
-     * @route /api/v1/employers/signup
+     * @function createStudent
+     * @route /api/v1/student/:parent_id/create
      * @method POST
      */
-    signUp: catchAsync(async (req, res, next) => {
+    createStudent: catchAsync(async (req, res, next) => {
         try {
-            const { company_name, email, password } = req.body
-            const emailExists = await Account.findOne({
-                email_address: email,
+            const { parent_id } = req.params
+            const { first_name, last_name, date_of_birth, gender } = req.body
+
+            if (!first_name || !last_name || !date_of_birth || !gender) {
+                return next(
+                    new AppError('Please fill in all required fields.', 400)
+                )
+            }
+
+            const studentExists = await Student.findOne({
+                parent_id,
+                first_name,
+                date_of_birth,
             })
 
-            if (emailExists) {
+            if (studentExists) {
                 return next(
                     new AppError(
-                        'Email address already exists. Login instead!',
+                        'A student with these same details already exists.',
                         400
                     )
                 )
             }
-            let verifiedPassword = isPasswordStandard(password)
-            if (!verifiedPassword) {
-                return next(
-                    new AppError(
-                        'Invalid password format. Atleast 8 characters long',
-                        400
-                    )
-                )
-            }
 
-            const hashedPassword = await bcrypt.hash(password, 10)
-            const newCompany = {
-                email_address: email,
-                password: hashedPassword,
-                type: 'employer',
-            }
-            const result = await Account.create(newCompany)
-            const employer = await Account.findOne({ email_address: email })
-            const myEmployer = CompanyProfile.create({
-                account_id: employer.id,
-                company_name: company_name,
-            })
-            const emailDetails = await AuthController.emailVerificationSetup(
-                email
-            )
-            const sentEmail = await sendMail(
-                emailDetails.reciever,
-                emailDetails.mailSubject,
-                emailDetails.mailContent
-            )
+            const result = await Student.create({ ...req.body, parent_id })
+
             res.status(201).json({
                 status: 'Success',
-                message: `Account created successfully. A verification email has been sent to ${email}`,
-                data: `A verification email has been sent to ${email}`,
+                message: `Student Creation Successful`,
+                data: result,
             })
         } catch (error) {
             return next(new AppError('Something went wrong', 400))
@@ -121,38 +52,35 @@ const StudentController = {
     }),
 
     /**
-     * @function forgotPassword
-     * @route /api/v1/employers/forgot-password
+     * @function editStudent
+     * @route /api/v1/student/:id/edit
      * @method POST
      */
-    forgotPassword: catchAsync(async (req, res, next) => {
+    editStudent: catchAsync(async (req, res, next) => {
         try {
-            const { email } = req.body
-            const emailExists = await Account.findOne({
-                email_address: email,
-            })
+            const { id } = req.params
+            const { first_name, last_name, date_of_birth, gender } = req.body
 
-            if (!emailExists) {
+            if (!first_name || !last_name || !date_of_birth || !gender) {
                 return next(
-                    new AppError(
-                        'Email address not registered to any user',
-                        400
-                    )
+                    new AppError('Please fill in all required fields.', 400)
                 )
             }
 
-            const emailDetails = await AuthController.passwordResetEmailSetup(
-                email
-            )
-            const sentEmail = await sendMail(
-                emailDetails.reciever,
-                emailDetails.mailSubject,
-                emailDetails.mailContent
-            )
-            res.status(201).json({
+            const studentExists = await Student.findById(id)
+
+            if (!studentExists) {
+                return next(new AppError('No such student exists.', 400))
+            }
+
+            studentExists = req.body
+            studentExists.updated_at = Date.now()
+            studentExists.save()
+
+            res.status(200).json({
                 status: 'Success',
-                message: `Password reset initiated. A reset email has been sent to ${email}`,
-                data: `A reset email has been sent to ${email}`,
+                message: `Student Details Updated!`,
+                data: studentExists,
             })
         } catch (error) {
             return next(new AppError('Something went wrong', 400))
@@ -160,137 +88,18 @@ const StudentController = {
     }),
 
     /**
-     * @function verifyEmail
-     * @route /api/v1/employers/verify/:token
+     * @function getAllStudents
+     * @route /api/v1/student/all
      * @method GET
      */
-    verifyEmail: catchAsync(async (req, res, next) => {
+    getAllStudents: catchAsync(async (req, res, next) => {
         try {
-            const { token } = req.params
-
-            const emailKey = `${process.env.REDIS_PREFIX}-${token}`
-
-            const keyExists = await redis.exists(emailKey)
-            // if key does not exist
-            if (keyExists === 0) {
-                return next(new AppError('Invalid token', 401))
-            }
-            const email = await redis.get(emailKey)
-
-            let employer = await Account.findOne({ email_address: email })
-            if (!employer) {
-                return next(new AppError('User does not exist', 400))
-            }
-            employer.is_verified = true
-            employer.save()
-
-            // res.status(200).json({
-            //     status: 'Success',
-            //     message: `Account verified successfully`,
-            //     data: `Your email (${email}) has been verified`,
-            // })
-            res.redirect('http://localhost:3000/onboarding/verified')
-        } catch (error) {
-            res.status(400).json({
-                status: 'Error',
-                message: error,
-            })
-        }
-    }),
-
-    /**
-     * @function verifyPasswordLink
-     * @route /api/v1/employers/verify-password-link/:token
-     * @method GET
-     */
-    verifyPasswordLink: catchAsync(async (req, res, next) => {
-        try {
-            const { token } = req.params
-
-            const emailKey = `${process.env.REDIS_PREFIX}-${token}`
-
-            const keyExists = await redis.exists(emailKey)
-            // if key does not exist
-            if (keyExists === 0) {
-                return next(new AppError('Invalid token', 401))
-            }
-            const email = await redis.get(emailKey)
-
-            let employer = await Account.findOne({ email_address: email })
-            if (!employer) {
-                return next(new AppError('User does not exist', 400))
-            }
-
-            // res.status(200).json({
-            //     status: 'Success',
-            //     message: `Account verified successfully`,
-            //     data: `Your email (${email}) has been verified`,
-            // })
-            res.redirect(
-                `http://localhost:3000/onboarding/reset-password?token=${token}`
-            )
-        } catch (error) {
-            res.status(400).json({
-                status: 'Error',
-                message: error,
-            })
-        }
-    }),
-
-    /**
-     * @function Login
-     * @route /api/v1/login
-     * @method POST
-     */
-    login: catchAsync(async (req, res, next) => {
-        try {
-            const { email, password } = req.body
-            let user = await User.findOne({
-                email: email,
-            })
-
-            if (!user) {
-                return next(
-                    new AppError(
-                        'No user with this email, sign up instead',
-                        400
-                    )
-                )
-            }
-
-            const passwordMatch = await bcrypt.compare(password, user.password)
-            if (!passwordMatch) {
-                return next(new AppError('Incorrect password, try again.', 400))
-            }
-            // CHECK IF USER IS VERIFIED
-            if (!user.is_verified) {
-                return next(
-                    new AppError(
-                        'Please verify your email address then proceed to login',
-                        400
-                    )
-                )
-            }
-
-            // create jwt
-            const token = jwt.sign(
-                {
-                    id: user._id,
-                    email: email_address,
-                    type: user.type,
-                },
-                process.env.JWT_SECRET,
-                { expiresIn: '30d' }
-            )
-
-            user.last_login = Date.now()
-            user.save()
+            const students = await Student.find()
 
             res.status(200).json({
                 status: 'Success',
-                message: `User login successful`,
-                data: user,
-                token: token,
+                message: `Students Fetched!`,
+                data: students,
             })
         } catch (error) {
             return next(new AppError('Something went wrong', 400))
@@ -298,121 +107,49 @@ const StudentController = {
     }),
 
     /**
-     * @function resetPassword
-     * @route /api/v1/employer/reset-password/:token
-     * @method POST
+     * @function getStudentsUnderParent
+     * @route /api/v1/student/get-my-kids/:parent_id
+     * @method GET
      */
-    resetPassword: catchAsync(async (req, res, next) => {
+    getStudentsUnderParent: catchAsync(async (req, res, next) => {
         try {
-            const { token } = req.params
-            const { password, confirm_password } = req.body
-
-            const emailKey = `${process.env.REDIS_PREFIX}-${token}`
-
-            const keyExists = await redis.exists(emailKey)
-            // if key does not exist
-            if (keyExists === 0) {
-                return next(new AppError('Invalid token', 401))
-            }
-            const email = await redis.get(emailKey)
-
-            let employer = await Account.findOne({ email_address: email })
-            if (!employer) {
-                return next(new AppError('User does not exist', 400))
-            }
-            let verifiedPassword = isPasswordStandard(password)
-            if (!verifiedPassword) {
-                return next(new AppError('Invalid password format', 400))
-            }
-
-            if (password !== confirm_password) {
-                return next(
-                    new AppError(
-                        'password and confirm password must be the same',
-                        400
-                    )
-                )
-            }
-            const hashedPassword = await bcrypt.hash(password, 10)
-
-            employer.password = hashedPassword
-            employer.save()
+            const { parent_id } = req.params
+            const students = await Student.find({ parent_id })
 
             res.status(200).json({
                 status: 'Success',
-                message: `Password reset, successful, please Login with new password`,
+                message: `Students Fetched!`,
+                data: students,
             })
         } catch (error) {
-            res.status(400).json({
-                status: 'Error',
-                message: error,
-            })
+            return next(new AppError('Something went wrong', 400))
         }
     }),
+
     /**
-     * @function onboardingSurvey
-     * @route /api/v1/employers/login
-     * @method POST
+     * @function getMyParent
+     * @route /api/v1/student/get-my-parent/:id
+     * @method GET
      */
-    onboardingSurvey: catchAsync(async (req, res, next) => {
+    getMyParent: catchAsync(async (req, res, next) => {
         try {
-            const {
-                id,
-                how_to_use_lobby,
-                company_name,
-                company_website,
-                company_size,
-                company_status,
-                available_roles,
-                roles_location,
-                employee_level,
-            } = req.body
-
-            if (!id) {
-                return next(new AppError('Account Not Found', 400))
+            const { id } = req.params
+            const student = await Student.findById(id)
+            if (!student) {
+                return next(new AppError('No such student exists.', 400))
             }
-            let employer = await Account.findOne({
-                _id: id,
-            })
-            let employerSurvey = await CompanyOnboardingSurvey.findOne({
-                account_id: id,
-            })
-            if (!employer) {
-                return next(new AppError('Account Not Found', 400))
-            }
-            if (employerSurvey) {
-                res.status(200).json({
-                    status: 'Success',
-                    message: `Account Survey, complete`,
-                    data: {},
-                })
-                return
-            }
-            const result = await CompanyOnboardingSurvey.create({
-                account_id: employer.id,
-                how_to_use_lobby,
-                company_name,
-                company_website,
-                company_size,
-                company_status,
-                available_roles,
-                roles_location,
-                employee_level,
-            }).then
 
-            let employerSurveyAvailable = await CompanyOnboardingSurvey.findOne(
-                {
-                    account_id: employer.id,
-                }
-            )
-
-            employer.stage = '2'
-            await employer.save()
+            const parent = await Parent.findOne(student.parent_id)
+            if (!parent) {
+                return next(
+                    new AppError('This student has no parent trace.', 400)
+                )
+            }
 
             res.status(200).json({
                 status: 'Success',
-                message: `Account Survey, complete`,
-                data: {},
+                message: `Parent Fetched!`,
+                data: parent,
             })
         } catch (error) {
             return next(new AppError('Something went wrong', 400))
