@@ -155,6 +155,29 @@ const StudentController = {
             return next(new AppError('Something went wrong', 400))
         }
     }),
+
+    /**
+     * @function getSpecficStudent
+     * @route /api/v1/student/specific/:id
+     * @method GET
+     */
+    getSpecficStudent: catchAsync(async (req, res, next) => {
+        try {
+            const { id } = req.params
+            const student = await Student.findOne({ _id: id })
+            if (!student) {
+                return next(new AppError('No such student exists.', 400))
+            }
+
+            res.status(200).json({
+                status: 'Success',
+                message: `Parent Fetched!`,
+                data: student,
+            })
+        } catch (error) {
+            return next(new AppError('Something went wrong', 400))
+        }
+    }),
 }
 
 module.exports = StudentController

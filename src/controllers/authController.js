@@ -283,7 +283,7 @@ const AuthController = {
                 { expiresIn: '30d' }
             )
 
-            user.last_login = Date.now()
+            user.logged_at = Date.now()
             user.save()
 
             res.status(200).json({

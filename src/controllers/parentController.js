@@ -35,14 +35,27 @@ const ParentController = {
                 )
             }
 
-            const parentExists = await Parent.findOne({
+            const emailExists = await Parent.findOne({
                 g1_email,
             })
 
-            if (parentExists) {
+            const phoneExists = await Parent.findOne({
+                g1_phone_number,
+            })
+
+            if (emailExists) {
                 return next(
                     new AppError(
                         'A parent with this Email address already exists.',
+                        400
+                    )
+                )
+            }
+
+            if (phoneExists) {
+                return next(
+                    new AppError(
+                        'A parent with this Phone number already exists.',
                         400
                     )
                 )
@@ -126,8 +139,31 @@ const ParentController = {
 
             res.status(200).json({
                 status: 'Success',
-                message: `Students Fetched!`,
+                message: `Parents Fetched!`,
                 data: parents,
+            })
+        } catch (error) {
+            return next(new AppError('Something went wrong', 400))
+        }
+    }),
+
+    /**
+     * @function getSpecficParent
+     * @route /api/v1/parent/specific/:id
+     * @method GET
+     */
+    getSpecficParent: catchAsync(async (req, res, next) => {
+        try {
+            const { id } = req.params
+            const parent = await Parent.findOne({ _id: id })
+            if (!parent) {
+                return next(new AppError('No such parent exists.', 400))
+            }
+
+            res.status(200).json({
+                status: 'Success',
+                message: `Parent Fetched!`,
+                data: parent,
             })
         } catch (error) {
             return next(new AppError('Something went wrong', 400))

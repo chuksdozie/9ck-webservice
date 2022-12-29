@@ -25,7 +25,7 @@ const SessionController = {
                 )
             }
 
-            const result = await Session.create(req.body)
+            const result = await Session.create({ ...req.body, student_id })
 
             res.status(201).json({
                 status: 'Success',

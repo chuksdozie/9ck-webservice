@@ -51,10 +51,6 @@ const userSchema = new mongoose.Schema(
     }
 )
 
-// companyProfileSchema.pre(/^find/, function (next) {
-//     this.populate('account_id')
-//     next()
-// })
 const User = mongoose.model('User', userSchema)
 
 module.exports = User

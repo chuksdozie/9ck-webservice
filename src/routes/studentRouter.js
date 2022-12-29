@@ -11,5 +11,6 @@ router
     .get(studentController.getStudentsUnderParent)
 router.route('/:parent_id/create').post(studentController.createStudent)
 router.route('/:id/edit').post(studentController.editStudent)
+router.route('/specific/:id').get(studentController.getSpecficStudent)
 
 module.exports = router

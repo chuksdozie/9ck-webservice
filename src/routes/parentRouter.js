@@ -7,5 +7,6 @@ const router = Router()
 router.route('/create').post(parentController.createParent)
 router.route('/:id/edit').post(parentController.editParent)
 router.route('/all').get(parentController.getAllParents)
+router.route('/specific/:id').get(parentController.getSpecficParent)
 
 module.exports = router
