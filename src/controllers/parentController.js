@@ -108,13 +108,23 @@ const ParentController = {
                 )
             }
 
-            const parentExists = await Parent.findById(id)
+            const parentExists = await Parent.findOne({ id })
+            console.log(parentExists)
 
             if (!parentExists) {
                 return next(new AppError('No such parent exists.', 400))
             }
 
-            parentExists = req.body
+            parentExists.g1_first_name = g1_first_name
+            parentExists.g1_last_name = g1_last_name
+            parentExists.g1_email = g1_email
+            parentExists.g2_first_name = g2_first_name
+            parentExists.g2_last_name = g2_last_name
+            parentExists.g2_email = g2_email
+            parentExists.address = address
+            parentExists.alternative_address = alternative_address
+            parentExists.g1_phone_number = g1_phone_number
+            parentExists.g2_phone_number = g2_phone_number
             parentExists.updated_at = Date.now()
             parentExists.save()
 
@@ -124,6 +134,7 @@ const ParentController = {
                 data: parentExists,
             })
         } catch (error) {
+            console.log(error)
             return next(new AppError('Something went wrong', 400))
         }
     }),

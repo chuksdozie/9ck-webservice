@@ -73,9 +73,12 @@ const StudentController = {
                 return next(new AppError('No such student exists.', 400))
             }
 
-            studentExists = req.body
+            studentExists.first_name = first_name
+            studentExists.last_name = last_name
+            studentExists.date_of_birth = date_of_birth
+            studentExists.gender = gender
             studentExists.updated_at = Date.now()
-            studentExists.save()
+            await studentExists.save()
 
             res.status(200).json({
                 status: 'Success',
